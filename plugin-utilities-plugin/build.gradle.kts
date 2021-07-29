@@ -63,6 +63,34 @@ open class PreprocessKotlinJavaCliTask : org.jetbrains.intellij.tasks.RunIdeTask
     }
 }
 
+open class IOCliAndroidTask : org.jetbrains.intellij.tasks.RunIdeTask() {
+    // Name of the runner
+    @get:Input
+    val runner: String? by project
+
+    // Input directory with files
+    @get:Input
+    val input: String? by project
+
+    @get:Input
+    val preprocessOutput: String? by project
+
+    @get:Input
+    val androidSdk: String? by project
+
+    init {
+        jvmArgs = listOf(
+            "-Djava.awt.headless=true",
+            "--add-exports",
+            "java.base/jdk.internal.vm=ALL-UNNAMED",
+            "-Djdk.module.illegalAccess.silent=true"
+        )
+        maxHeapSize = "20g"
+        standardInput = System.`in`
+        standardOutput = System.`out`
+    }
+}
+
 tasks {
     register<IOCliTask>("ioCli") {
         dependsOn("buildPlugin")
@@ -79,6 +107,16 @@ tasks {
             "preprocessKotlinJava",
             input?.let { "--input=$it" },
             output?.let { "--output=$it" },
+            androidSdk?.let { "--androidSdk=$it" }
+        )
+    }
+
+    register<IOCliAndroidTask>("androidCli") {
+        dependsOn("buildPlugin")
+        args = listOfNotNull(
+            runner,
+            input?.let { "--input=$it" },
+            preprocessOutput?.let { "--preprocessOutput=$it" },
             androidSdk?.let { "--androidSdk=$it" }
         )
     }
